@@ -14,7 +14,7 @@ pipe.enable_model_cpu_offload()
 pipe.vae.enable_tiling()
 pipe.vae.enable_slicing()
 
-input_video = load_video("input.mp4")
+input_video = load_video("/kaggle/input/point-prompting/input.mp4", max_frames=16)
 
 prompt = "A cinematic video, same motion, cyberpunk city style"
 negative_prompt = "low quality, blurry, distorted, artifacts"
@@ -31,4 +31,4 @@ video = pipe(
     generator=generator,
 ).frames[0]
 
-export_to_video(video, "/kaggle/working/point_prompting/input.mp4", fps=8)
+export_to_video(video, "/kaggle/working/point_prompting/output.mp4", fps=8)
