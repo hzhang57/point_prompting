@@ -31,4 +31,4 @@ video = pipe(
     generator=generator,
 ).frames[0]
 
-export_to_video(video, "output_sdedit.mp4", fps=8)
+export_to_video(video, "/kaggle/working/point_prompting/input.mp4", fps=8)
