@@ -11,14 +11,27 @@ from PIL import Image
 model_id = "THUDM/CogVideoX-5b"
 max_frames = 8
 input_size = (720, 480)
+gpu_count = torch.cuda.device_count()
+cuda_capability = torch.cuda.get_device_capability(0) if gpu_count else (0, 0)
+torch_dtype = torch.bfloat16 if cuda_capability[0] >= 8 else torch.float16
+load_kwargs = {
+    "torch_dtype": torch_dtype,
+}
+
+if gpu_count >= 2:
+    load_kwargs.update(
+        device_map="balanced",
+        max_memory={i: "14GiB" for i in range(gpu_count)},
+    )
 
 pipe = CogVideoXVideoToVideoPipeline.from_pretrained(
     model_id,
-    torch_dtype=torch.bfloat16,
+    **load_kwargs,
 )
 
 pipe.scheduler = CogVideoXDPMScheduler.from_config(pipe.scheduler.config)
-pipe.enable_model_cpu_offload()
+if gpu_count < 2:
+    pipe.enable_model_cpu_offload()
 pipe.vae.enable_tiling()
 pipe.vae.enable_slicing()
 
@@ -33,7 +46,7 @@ input_video = [
 prompt = "A cinematic video, same motion, cyberpunk city style"
 negative_prompt = "low quality, blurry, distorted, artifacts"
 
-generator = torch.Generator(device="cuda").manual_seed(42)
+generator = torch.Generator(device="cpu").manual_seed(42)
 
 video = pipe(
     video=input_video,
